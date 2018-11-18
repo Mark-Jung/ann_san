@@ -1,3 +1,10 @@
+import os
+from utils.spotify import Spotify
+
+
+spotify = Spotify("fef9a71f9bac41a48155f3a4ac971f4f", os.environ['SPOTIFY'])
+spotify.getToken()
+
 """
     1. average the popularities of the top kpop popularities, 3 max
         a. 
@@ -6,23 +13,43 @@
     4. With 3, get audio features and track information 2
     5. turn the return object of 3 into rows of train.csv 
 """
+def tracksFromPlaylist(filename):
+    """
+        Read all the songs of the playlist from the playlist.txt 10~
+        input: file path  
+        output: hashset of song ids
+    """
+    foo = open(filename, "r")
+    playlists = foo.readlines()
+    foo.close()
+    tracks = set()
+    for playlist in playlists:
+        temp = spotify.getSongsFromPlaylist(playlist)
+        print(temp)
+        tracks.update(temp)
+    return tracks
 
-"""
-    Spotify Class:
-        1. 
-        Get info of tracks
-            input: list of spotify id, field wanted
-            output: dictionary of song ids: field wanted
-        2.
-        Get spotify id of songs of a playlist
-            input: playlist link
-            output: list of song ids
-        3.
-        Get audio features of tracks
-            input: list of spotify id
-            output: dictionary of song ids: dictionary of audio data
-"""
+def averageKPOP(filename):
+    """
+        Gets the list of kpop playlists and averages the popularity
+        input: file path
+        output: double
+    """
 
+    tracks = tracksFromPlaylist(filename)
 
+    song_popularities = spotify.getTracksInfo(tracks, 'popularity')
+    
+    avg = 0
+    for each in song_popularities:
+        avg += each
+
+    return avg / len(song_popularities)
+
+#avg_kpop = averageKPOP("kpop.txt")
+
+tracksFromPlaylist('kpop.txt')
+
+# training_songs = trainingSongs("train_playlist.txt")
 
 
