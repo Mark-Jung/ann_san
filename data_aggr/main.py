@@ -1,3 +1,10 @@
+import csv
+import os
+from utils.spotify import Spotify
+
+
+spotify = Spotify()
+
 """
     1. average the popularities of the top kpop popularities, 3 max
         a. 
@@ -6,23 +13,70 @@
     4. With 3, get audio features and track information 2
     5. turn the return object of 3 into rows of train.csv 
 """
+def tracksFromPlaylist(filename):
+    """
+        Read all the songs of the playlist from the playlist.txt 10~
+        input: file path  
+        output: dictionary. key = song ids, value = song popularity
+    """
+    foo = open(filename, "r")
+    playlists = foo.readlines()
+    foo.close()
+    tracks = {}
+    for playlist in playlists:
+        temp = spotify.getSongsFromPlaylist(playlist.strip())
+        tracks.update(temp)
+    return tracks
 
-"""
-    Spotify Class:
-        1. 
-        Get info of tracks
-            input: list of spotify id, field wanted
-            output: dictionary of song ids: field wanted
-        2.
-        Get spotify id of songs of a playlist
-            input: playlist link
-            output: list of song ids
-        3.
-        Get audio features of tracks
-            input: list of spotify id
-            output: dictionary of song ids: dictionary of audio data
-"""
+def averagePlaylist(filename):
+    """
+        Gets the list of kpop playlists and averages the popularity
+        input: file path
+        output: double
+    """
+    tracks = tracksFromPlaylist(filename)
+    avg = 0
+    for key, value in tracks.items():
+        avg += value 
 
+    return avg / len(tracks.items())
 
+def retrieveAudioData(training_songs_ids):
+    return spotify.getAudioInfo(training_songs_ids)
 
+avg_pop = averagePlaylist("train_playlist.txt")
+print(avg_pop)
+training_songs = tracksFromPlaylist("train_playlist.txt")
 
+audio_data = retrieveAudioData(list(training_songs.keys()))
+
+recording_data = {}
+
+for _id, popularity in training_songs.items():
+    attributes = audio_data[_id]
+    classifier = avg_pop >= popularity
+    recording_data[_id] = {
+            'popularity': classifier,
+            'popularity_num': popularity,
+            'danceability': attributes['danceability'],
+            'energy': attributes['energy'],
+            'key': attributes['key'],
+            'loudness': attributes['loudness'],
+            'mode': attributes['mode'],
+            'speechiness': attributes['speechiness'],
+            'acousticness': attributes['acousticness'],
+            'instrumentalness': attributes['instrumentalness'],
+            'liveness': attributes['liveness'],
+            'valence': attributes['valence'],
+            'tempo': attributes['tempo'],
+            'time_signature': attributes['time_signature'],
+            }
+
+# record this shit
+with open('train.csv', 'w', newline='') as csvfile:
+    fieldnames = ['popularity', 'popularity_num', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo','time_signature']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+    writer.writeheader()
+    for key, value in recording_data.items():
+        writer.writerow(value)
