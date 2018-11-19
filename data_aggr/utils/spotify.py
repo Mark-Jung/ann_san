@@ -1,3 +1,4 @@
+import os
 import base64
 import requests
 import six
@@ -20,50 +21,65 @@ import six
 
 class Spotify():
 
-    def __init__(self, client_id, client_secret):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.token = ""
-        self.auth_header = ""
+    def __init__(self):
+        self.token = 'Bearer ' + os.environ['SPOTIFY']
 
-    def getToken(self):
-        if self.token != "":
-            return self.token
-        else:
-            auth_header = base64.b64encode(six.text_type(self.client_id + ':' + self.client_secret).encode('ascii'))
-            headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-            payload = { 'grant_type': 'client_credentials'}
-            response = requests.post("https://accounts.spotify.com/api/token", data=payload,
-            headers=headers, verify=True)
-            if response.status_code != 200:
-                raise Exception("Couldn't Login")
-            token_info = response.json()
-            token = token_info["access_token"]
-            self.token = token
-            self.auth_header = {'Authorization': "Bearer " + token}
-
-        return token
-
-
-    def getTracksInfo(self, tracks, target):
+    def getAudioInfo(self, tracks):
         """
             input: list of spotify id, field wanted
             output: dictionary of song ids: field wanted
         """
-        spotify_ready = tracks.join(',')
         result = {}
-        pass
+        cnter = 0
+        while cnter < len(tracks):
+            if cnter + 100 <= len(tracks):
+                reach = cnter + 100
+            else:
+                reach = len(tracks)
+            payload = tracks[cnter:reach]
+            spotify_ready = ','.join(payload)
+            url = "https://api.spotify.com/v1/audio-features/?ids=" + spotify_ready 
+            headers = {
+                'authorization': self.token,
+                'content-type': "application/json",
+                'cache-control': "no-cache",
+                'postman-token': "828d920f-cf71-b0c6-697e-7fa1759d9c27"
+                }
+            response = requests.request("GET", url, headers=headers)
+            if not response.ok:
+                print(response.status_code)
+                print(response.json())
+                print(response.content)
+                raise Exception("Couldn't get playlist: " + playlist_id)
+            playlist = response.json()
+            for each in playlist['audio_features']:
+                result[each['id']] = each
+            cnter = reach
+        return result
 
     def getSongsFromPlaylist(self, playlist_id):
-        response = requests.get("https://api.spotify.com/v1/playlists/" + playlist_id, headers=self.auth_header)
-        if response.status_code != 200:
+        url = "https://api.spotify.com/v1/playlists/" + playlist_id
+        headers = {
+            'authorization': self.token,
+            'content-type': "application/json",
+            'cache-control': "no-cache",
+            'postman-token': "828d920f-cf71-b0c6-697e-7fa1759d9c27"
+            }
+
+        response = requests.request("GET", url, headers=headers)
+
+        if not response.ok:
             print(response.status_code)
+            print(response.json())
+            print(response.content)
             raise Exception("Couldn't get playlist: " + playlist_id)
         playlist = response.json()
-        print(playlist)
-        return playlist['tracks']
+        result = {}
+        for track in playlist['tracks']['items']:
+            result[track['track']['id']] = track['track']['popularity']
+
+        return result 
 
     def getAudioAttr(self, tracks):
         pass
-
 
