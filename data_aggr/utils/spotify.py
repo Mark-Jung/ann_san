@@ -79,7 +79,29 @@ class Spotify():
             result[track['track']['id']] = track['track']['popularity']
 
         return result 
+    def getPlaylists(self, category, country, limit):
+        url = "https://api.spotify.com/v1/browse/categories/" + category +'/playlists?country='+country+'&limit='+limit 
+        headers = {
+            'authorization': self.token,
+            'content-type': "application/json",
+            'cache-control': "no-cache",
+            'postman-token': "828d920f-cf71-b0c6-697e-7fa1759d9c27"
+            }
 
-    def getAudioAttr(self, tracks):
-        pass
+        response = requests.request("GET", url, headers=headers)
+
+        if not response.ok:
+            print(response.status_code)
+            print(response.json())
+            print(response.content)
+            raise Exception("Couldn't get playlist: " + response.status_code)
+        playlists = response.json()
+        result = set()
+        for playlist in playlists['playlists']['items']:
+            result.add(playlist['id'])
+
+        return result
+
+ 
+
 

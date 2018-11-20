@@ -79,9 +79,18 @@ def recordAudioDataFromPlaylists(filename, popularity_standard, location):
         writer.writeheader()
         for key, value in recording_data.items():
             writer.writerow(value)
+def getKpopPlaylists(filename):
+    playlists = spotify.getPlaylists('kpop', 'US', str(50))
+    destination = open(filename, 'w')
+    for each in playlists:
+        destination.write(each + '\n')
+    destination.close()
 
-avg_pop = averagePlaylists("train_playlist.txt")
 
-recordAudioDataFromPlaylists("train_playlist.txt", avg_pop, 'train.csv')
+getKpopPlaylists('train_kpop.txt')
+
+avg_pop = averagePlaylists("train_kpop.txt")
+
+recordAudioDataFromPlaylists("train_kpop.txt", avg_pop, 'train.csv')
 
 recordAudioDataFromPlaylists('kpop.txt', avg_pop, 'test.csv')
