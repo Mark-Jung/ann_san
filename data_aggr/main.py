@@ -28,7 +28,7 @@ def tracksFromPlaylist(filename):
         tracks.update(temp)
     return tracks
 
-def averagePlaylist(filename):
+def averagePlaylists(filename):
     """
         Gets the list of kpop playlists and averages the popularity
         input: file path
@@ -44,39 +44,44 @@ def averagePlaylist(filename):
 def retrieveAudioData(training_songs_ids):
     return spotify.getAudioInfo(training_songs_ids)
 
-avg_pop = averagePlaylist("train_playlist.txt")
-print(avg_pop)
-training_songs = tracksFromPlaylist("train_playlist.txt")
+def recordAudioDataFromPlaylists(filename, popularity_standard, location):
+    training_songs = tracksFromPlaylist(filename)
 
-audio_data = retrieveAudioData(list(training_songs.keys()))
+    audio_data = retrieveAudioData(list(training_songs.keys()))
 
-recording_data = {}
+    recording_data = {}
 
-for _id, popularity in training_songs.items():
-    attributes = audio_data[_id]
-    classifier = avg_pop >= popularity
-    recording_data[_id] = {
-            'popularity': classifier,
-            'popularity_num': popularity,
-            'danceability': attributes['danceability'],
-            'energy': attributes['energy'],
-            'key': attributes['key'],
-            'loudness': attributes['loudness'],
-            'mode': attributes['mode'],
-            'speechiness': attributes['speechiness'],
-            'acousticness': attributes['acousticness'],
-            'instrumentalness': attributes['instrumentalness'],
-            'liveness': attributes['liveness'],
-            'valence': attributes['valence'],
-            'tempo': attributes['tempo'],
-            'time_signature': attributes['time_signature'],
-            }
+    for _id, popularity in training_songs.items():
+        attributes = audio_data[_id]
+        classifier = avg_pop >= popularity
+        recording_data[_id] = {
+                'popularity': classifier,
+                'popularity_num': popularity,
+                'danceability': attributes['danceability'],
+                'energy': attributes['energy'],
+                'key': attributes['key'],
+                'loudness': attributes['loudness'],
+                'mode': attributes['mode'],
+                'speechiness': attributes['speechiness'],
+                'acousticness': attributes['acousticness'],
+                'instrumentalness': attributes['instrumentalness'],
+                'liveness': attributes['liveness'],
+                'valence': attributes['valence'],
+                'tempo': attributes['tempo'],
+                'time_signature': attributes['time_signature'],
+                }
 
-# record this shit
-with open('train.csv', 'w', newline='') as csvfile:
-    fieldnames = ['popularity', 'popularity_num', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo','time_signature']
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    # record this shit
+    with open(location, 'w', newline='') as csvfile:
+        fieldnames = ['popularity', 'popularity_num', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo','time_signature']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-    writer.writeheader()
-    for key, value in recording_data.items():
-        writer.writerow(value)
+        writer.writeheader()
+        for key, value in recording_data.items():
+            writer.writerow(value)
+
+avg_pop = averagePlaylists("train_playlist.txt")
+
+recordAudioDataFromPlaylists("train_playlist.txt", avg_pop, 'train.csv')
+
+recordAudioDataFromPlaylists('kpop.txt', avg_pop, 'test.csv')
