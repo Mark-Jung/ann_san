@@ -85,6 +85,7 @@ class Spotify():
             artists[track['track']['id']] = artist_ids
         
         return result, artists
+
     def getPlaylists(self, category, country, limit):
         url = "https://api.spotify.com/v1/browse/categories/" + category +'/playlists?country='+country+'&limit='+limit 
         headers = {
@@ -108,25 +109,52 @@ class Spotify():
 
         return result
 
-    def getArtists(self, category, country, limit):
-        url = "https://api.spotify.com/v1/browse/categories/" + category +'/playlists?country='+country+'&limit='+limit 
-        headers = {
+    def getArtists(self, track_artists):
+        all_artists = set()
+        for artists in track_artists.values():
+            all_artists.update(artists)
+        
+        result = {}
+        cnter = 0
+        all_artists = list(all_artists)
+
+        while cnter < len(all_artists):
+            if cnter + 50 <= len(all_artists):
+                reach = cnter + 50
+            else:
+                reach = len(all_artists)
+            names = ','.join(all_artists[cnter:reach])
+            url = "https://api.spotify.com.v1/artists/?ids=" + names
+            headers = {
             'authorization': self.token,
             'content-type': "application/json",
             'cache-control': "no-cache",
             'postman-token': "828d920f-cf71-b0c6-697e-7fa1759d9c27"
             }
+            response = requests.request("GET", url, headers=headers)
+            if not response.ok:
+                print(response.status_code)
+                print(response.json())
+                print(response.content)
+                raise Exception("Couldn't get artists: " + response.status_code)
+            artists_sth = response.json()
+            for each in artists_sth['artists']:
+                result.update({each['id']:[each['followers']['total'],each['popularity']]})
+            cnter = reach
 
-        response = requests.request("GET", url, headers=headers)
+        updated_track_artists = {}
 
-        if not response.ok:
-            print(response.status_code)
-            print(response.json())
-            print(response.content)
-            raise Exception("Couldn't get playlist: " + response.status_code)
-        playlists = response.json()
-        result = set()
-        for playlist in playlists['playlists']['items']:
-            result.add(playlist['id'])
+        for _id, artists in track_artists.items():
+            maxfol = max()
+            maxpop = 0
 
-        return result
+            for artist in artists:
+                fol_pop = result[artist]
+                maxfol = max(maxfol, fol_pop[0])
+                maxpop = max(maxpop, fol_pop[1])
+            updated_track_artists[_id] = [maxfol, maxpop]
+
+        return updated_track_artists
+
+
+
