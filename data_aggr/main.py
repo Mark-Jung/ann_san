@@ -77,7 +77,7 @@ def recordAudioDataFromPlaylists(filename, popularity_standard, location):
 
     # record this shit
     with open(location, 'w', newline='') as csvfile:
-        fieldnames = ['popularity', 'popularity_num', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo','time_signature']
+        fieldnames = ['popularity', 'popularity_num', 'artist_followers', 'artist_popularity', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo','time_signature']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()

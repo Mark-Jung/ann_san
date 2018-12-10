@@ -124,7 +124,7 @@ class Spotify():
             else:
                 reach = len(all_artists)
             names = ','.join(all_artists[cnter:reach])
-            url = "https://api.spotify.com.v1/artists/?ids=" + names
+            url = "https://api.spotify.com/v1/artists?ids=" + names
             headers = {
             'authorization': self.token,
             'content-type': "application/json",
@@ -153,5 +153,4 @@ class Spotify():
                 maxfol = max(maxfol, fol_pop[0])
                 maxpop = max(maxpop, fol_pop[1])
             updated_track_artists[_id] = [maxfol, maxpop]
-        print(updated_track_artists)
         return updated_track_artists
