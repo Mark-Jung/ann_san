@@ -36,7 +36,7 @@ def averagePlaylists(filename):
         input: file path
         output: double
     """
-    tracks = tracksFromPlaylist(filename)
+    tracks, all_artists = tracksFromPlaylist(filename)
     avg = 0
     for key, value in tracks.items():
         avg += value 
@@ -47,8 +47,8 @@ def retrieveAudioData(training_songs_ids):
     return spotify.getAudioInfo(training_songs_ids)
 
 def recordAudioDataFromPlaylists(filename, popularity_standard, location):
-    training_songs, all_artists = tracksFromPlaylist(filename)
-
+    training_songs, track_artists = tracksFromPlaylist(filename)
+    all_artists = spotify.getArtists(track_artists)
     audio_data = retrieveAudioData(list(training_songs.keys()))
 
     recording_data = {}
@@ -59,6 +59,8 @@ def recordAudioDataFromPlaylists(filename, popularity_standard, location):
         recording_data[_id] = {
                 'popularity': classifier,
                 'popularity_num': popularity,
+                'artist_followers': all_artists[_id][0],
+                'artist_popularity': all_artists[_id][1],
                 'danceability': attributes['danceability'],
                 'energy': attributes['energy'],
                 'key': attributes['key'],

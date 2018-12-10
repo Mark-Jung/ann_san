@@ -119,8 +119,8 @@ class Spotify():
         all_artists = list(all_artists)
 
         while cnter < len(all_artists):
-            if cnter + 50 <= len(all_artists):
-                reach = cnter + 50
+            if cnter + 48 <= len(all_artists):
+                reach = cnter + 48
             else:
                 reach = len(all_artists)
             names = ','.join(all_artists[cnter:reach])
@@ -145,7 +145,7 @@ class Spotify():
         updated_track_artists = {}
 
         for _id, artists in track_artists.items():
-            maxfol = max()
+            maxfol = 0
             maxpop = 0
 
             for artist in artists:
@@ -153,8 +153,5 @@ class Spotify():
                 maxfol = max(maxfol, fol_pop[0])
                 maxpop = max(maxpop, fol_pop[1])
             updated_track_artists[_id] = [maxfol, maxpop]
-
+        print(updated_track_artists)
         return updated_track_artists
-
-
-
