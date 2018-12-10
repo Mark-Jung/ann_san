@@ -23,10 +23,12 @@ def tracksFromPlaylist(filename):
     playlists = foo.readlines()
     foo.close()
     tracks = {}
+    all_artists = {}
     for playlist in playlists:
-        temp = spotify.getSongsFromPlaylist(playlist.strip())
-        tracks.update(temp)
-    return tracks
+        popularity, artists = spotify.getSongsFromPlaylist(playlist.strip())
+        tracks.update(popularity)
+        all_artists.update(artists)
+    return tracks, all_artists
 
 def averagePlaylists(filename):
     """
@@ -45,7 +47,7 @@ def retrieveAudioData(training_songs_ids):
     return spotify.getAudioInfo(training_songs_ids)
 
 def recordAudioDataFromPlaylists(filename, popularity_standard, location):
-    training_songs = tracksFromPlaylist(filename)
+    training_songs, all_artists = tracksFromPlaylist(filename)
 
     audio_data = retrieveAudioData(list(training_songs.keys()))
 
@@ -79,9 +81,18 @@ def recordAudioDataFromPlaylists(filename, popularity_standard, location):
         writer.writeheader()
         for key, value in recording_data.items():
             writer.writerow(value)
+def getKpopPlaylists(filename):
+    playlists = spotify.getPlaylists('kpop', 'US', str(50))
+    destination = open(filename, 'w')
+    for each in playlists:
+        destination.write(each + '\n')
+    destination.close()
 
-avg_pop = averagePlaylists("train_playlist.txt")
 
-recordAudioDataFromPlaylists("train_playlist.txt", avg_pop, 'train.csv')
+getKpopPlaylists('train_kpop.txt')
+
+avg_pop = averagePlaylists("train_kpop.txt")
+
+recordAudioDataFromPlaylists("train_kpop.txt", avg_pop, 'train.csv')
 
 recordAudioDataFromPlaylists('kpop.txt', avg_pop, 'test.csv')
