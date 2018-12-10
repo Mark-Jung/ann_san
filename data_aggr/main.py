@@ -23,10 +23,12 @@ def tracksFromPlaylist(filename):
     playlists = foo.readlines()
     foo.close()
     tracks = {}
+    all_artists = {}
     for playlist in playlists:
-        temp = spotify.getSongsFromPlaylist(playlist.strip())
-        tracks.update(temp)
-    return tracks
+        popularity, artists = spotify.getSongsFromPlaylist(playlist.strip())
+        tracks.update(popularity)
+        all_artists.update(artists)
+    return tracks, all_artists
 
 def averagePlaylists(filename):
     """
@@ -45,7 +47,7 @@ def retrieveAudioData(training_songs_ids):
     return spotify.getAudioInfo(training_songs_ids)
 
 def recordAudioDataFromPlaylists(filename, popularity_standard, location):
-    training_songs = tracksFromPlaylist(filename)
+    training_songs, all_artists = tracksFromPlaylist(filename)
 
     audio_data = retrieveAudioData(list(training_songs.keys()))
 
